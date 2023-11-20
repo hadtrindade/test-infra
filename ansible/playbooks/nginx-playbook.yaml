@@ -1,18 +1,18 @@
 ---
 - name: install nginx.
   hosts: webservers
-  remote_user: user
-  become: yes
+  remote_user: vagrant
+  become: true
 
   tasks:
     - name: Install NGINX
       apt:
         name: nginx
         state: latest
-        update_cache: yes
+        update_cache: true
         
-    - name: Enable deamon NGINX
-      ansible.builtin.systemd:
+    - name: Enable service NGINX and state started
+      ansible.builtin.service:
         name: nginx
         state: started
         enabled: true

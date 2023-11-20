@@ -11,3 +11,13 @@
 - [playbook intro](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_intro.html#playbook-syntax)
 - [apt](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/apt_module.html)
 - [systemd](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/systemd_service_module.html#ansible-collections-ansible-builtin-systemd-service-module)
+
+
+
+### TODOS
+
+- utilizar handlers 
+- local_action
+- add_hosts
+- lineinfile
+- wait_for

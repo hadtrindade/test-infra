@@ -1,9 +1,0 @@
----
-- hosts: all
-  become: yes
-  tasks:
-    - name: Install net-tools VIM.
-      apt: name={{item}} state=latest update_cache=true
-      with_items:
-        - net-tools
-        - vim
