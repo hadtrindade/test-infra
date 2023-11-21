@@ -1,5 +1,5 @@
 ---
-- name: install nginx.
+- name: Install nginx.
   hosts: webservers
   remote_user: vagrant
   become: true

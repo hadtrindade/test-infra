@@ -1,0 +1,9 @@
+---
+# vars file for freeswitch
+
+packages: [gnupg2, wget, lsb-release]
+signalwire_url_repo: https://freeswitch.signalwire.com/repo/deb/debian-release/signalwire-freeswitch-repo.gpg
+signalwire_keypair: /usr/share/keyrings/signalwire-freeswitch-repo.gpg
+signalwire_token: pat_aSUPRIMIDO # Vou ver uma forma segura.
+signalwire_user: signalwire
+freeswitch_repo: https://github.com/signalwire/freeswitch.git

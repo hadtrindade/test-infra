@@ -1,0 +1,100 @@
+---
+# tasks file for freeswitch
+
+- name: Install packages 
+  ansible.builtin.apt: 
+    name: "{{ packages }}"
+    state: latest
+    update_cache: true
+
+- name: Download repo keypair
+  ansible.builtin.get_url:
+    url: https://freeswitch.signalwire.com/repo/deb/debian-release/signalwire-freeswitch-repo.gpg
+    username: "{{ signalwire_user }}"
+    password: "{{ signalwire_token }}"
+    dest: /usr/share/keyrings/signalwire-freeswitch-repo.gpg
+
+- name: Make apt auth directory
+  ansible.builtin.file:
+    path: /etc/apt/auth.conf.d
+    state: directory
+    mode: '0755'
+
+- name: Create apt auth.conf.d freeswitch file
+  ansible.builtin.copy:
+    dest: /etc/apt/auth.conf.d/freeswitch.conf
+    owner: root
+    group: root
+    mode: '0700'
+    content: "machine freeswitch.signalwire.com login signalwire password {{ signalwire_token }}"
+
+- name: "Add SignalWire FreeSWITCH repo"
+  ansible.builtin.apt_repository:
+    repo: "{{ item }}"
+    state: present
+    filename: freeswitch
+  with_items: 
+    - "deb [signed-by=/usr/share/keyrings/signalwire-freeswitch-repo.gpg] https://freeswitch.signalwire.com/repo/deb/debian-unstable/ {{ ansible_distribution_release }} main" 
+    - "deb-src [signed-by=/usr/share/keyrings/signalwire-freeswitch-repo.gpg] https://freeswitch.signalwire.com/repo/deb/debian-unstable/ {{ ansible_distribution_release }} main" 
+
+- name: Install dependencies 
+  ansible.builtin.apt: 
+    name: freeswitch
+    state: "build-dep"
+    update_cache: true
+
+- name: Clone FreeSWITCH repo.
+  ansible.builtin.git:
+      repo: "{{freeswitch_repo}}"
+      dest: /usr/src/freeswitch
+      version: v1.10.10
+      update: true
+
+- name: Install FreeSWITCH.
+  ansible.builtin.shell:
+    cmd: ./bootstrap.sh -j && ./configure && make && make install
+    chdir: /usr/src/freeswitch
+
+- name: Install FreeSWITCH fs_cli
+  ansible.builtin.shell:
+    cmd: "{{ item }}"
+    chdir: /usr/src/freeswitch/
+  with_items: 
+    - make current
+    - cd libs/esl && make
+  ignore_errors: true
+
+- name: Create users and groups and set permissions # dá para melhorar com funções builtin do ansible
+  ansible.builtin.shell:
+    cmd: "{{ item }}"
+    chdir: /usr/local
+  with_items: 
+    - groupadd freeswitch
+    - adduser --quiet --system --home /usr/local/freeswitch --gecos "FreeSWITCH open source softswitch" --ingroup freeswitch freeswitch --disabled-password
+    - chown -R freeswitch:freeswitch /usr/local/freeswitch/ 
+    - chmod -R ug=rwX,o= /usr/local/freeswitch/
+    - chmod -R u=rwx,g=rx /usr/local/freeswitch/bin/*
+  ignore_errors: true
+
+- name: Create a symbolic link of fs_cli
+  ansible.builtin.file:
+    src: /usr/src/freeswitch/libs/esl/fs_cli
+    dest: /usr/local/bin/fs_cli
+    owner: freeswitch
+    group: freeswitch
+    state: link
+
+- name: Copy systemd unit file FreeSWITCH
+  ansible.builtin.copy:
+    src: ../templates/freeswitch.service.j2
+    dest: /etc/systemd/system/freeswitch.service
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Enable service FreeSWITCH and state started
+  ansible.builtin.service:
+    name: freeswitch
+    state: started
+    enabled: true
+

@@ -1,23 +1,27 @@
 # Estudos de infraestrutura.
 
 
-### Documentações consultadas:
-
-#### Provisionamento do nó com vagrant.
-- [vagrant](https://developer.hashicorp.com/vagrant/docs/provisioning/ansible_intro)
+# Instruções para rodar
 
 
-#### Playback desafio 1.
-- [playbook intro](https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_intro.html#playbook-syntax)
-- [apt](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/apt_module.html)
-- [systemd](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/systemd_service_module.html#ansible-collections-ansible-builtin-systemd-service-module)
+### Instalação do ansible e httpx
+```bash
+pip install -r requirements.txt 
+```
 
+#### Antes de provisionar o Vagrant deve estar instalado juntamente com o Virtualbox.
 
+### Provisionamento das VMs
+```bash
+make 
+```
 
-### TODOS
+### Executar playbook para instalação do NGINX
+```bash
+make nginx 
+```
 
-- utilizar handlers 
-- local_action
-- add_hosts
-- lineinfile
-- wait_for
+### Executar o playbook para instalaçãodo freeSWITCH
+```bash
+make freeswitch
+```
