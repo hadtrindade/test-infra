@@ -4,7 +4,10 @@ prov:
 	@vagrant up
 
 nginx:
-	@ansible-playbook -i .vagrant/provisioners/ansible/inventory/vagrant_ansible_inventory playbooks/nginx-playbook.yaml 
+	@ansible-playbook -i devops-test/hosts  devops-test/nginx/main.yml
+
+freeswitch:
+	@ansible-playbook -i devops-test/hosts devops-test/freeswitch/main.yml
 
 black:
 	@black -l 79 monitoramento/*

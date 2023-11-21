@@ -1,0 +1,24 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Install net-tools VIM.
+      apt: name={{item}} state=latest update_cache=true
+      with_items:
+        - net-tools
+        - vim
+
+    - name: Add to inventory in web section
+      local_action: lineinfile
+        dest="../hosts"
+        regexp={{ ansible_facts.eth1.ipv4.address }}
+        insertbefore="[telephony]" line={{ ansible_facts.eth1.ipv4.address }}
+      when: ansible_facts['nodename'] == 'web'
+
+    - name: Add to inventory in telephony section
+      local_action: lineinfile
+        dest="../hosts"
+        regexp={{ ansible_facts.eth1.ipv4.address }}
+        insertafter="[telephony]" line={{ ansible_facts.eth1.ipv4.address }}
+      when: ansible_facts['nodename'] == 'freeswitch'
+
