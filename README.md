@@ -21,7 +21,12 @@ make
 make nginx 
 ```
 
-### Executar o playbook para instalaçãodo freeSWITCH
+### Executar o playbook para instalação do freeSWITCH
 ```bash
 make freeswitch
+```
+
+### Executar script de monitoramento de site.
+```bash
+python scripts.py
 ```

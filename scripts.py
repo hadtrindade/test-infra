@@ -26,5 +26,7 @@ def resquest_ok(url: str) -> Union[None, str]:
 
 
 if __name__ == "__main__":
-    if not resquest_ok(url="https://evolux.net.br/"):
+    if strerr := resquest_ok(url="https://evolux.net.br/"):
+        print(strerr)
+    else:
         print("OK")

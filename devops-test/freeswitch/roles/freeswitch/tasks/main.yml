@@ -50,31 +50,53 @@
       version: v1.10.10
       update: true
 
-- name: Install FreeSWITCH.
+- name: Register a variable freeswitch_exists
+  ansible.builtin.shell: test -e /usr/local/freeswitch/bin/freeswitch
+  register: freeswitch_exists
+  ignore_errors: true
+
+- name: Build FreeSWITCH
   ansible.builtin.shell:
     cmd: ./bootstrap.sh -j && ./configure && make && make install
     chdir: /usr/src/freeswitch
+  when: freeswitch_exists.rc != 0
 
-- name: Install FreeSWITCH fs_cli
-  ansible.builtin.shell:
-    cmd: "{{ item }}"
-    chdir: /usr/src/freeswitch/
-  with_items: 
-    - make current
-    - cd libs/esl && make
+- name: Register a variable fs_cli_exists
+  ansible.builtin.shell: test -e /usr/src/freeswitch/libs/esl/fs_cli
+  register: fs_cli_exists
   ignore_errors: true
 
-- name: Create users and groups and set permissions # dá para melhorar com funções builtin do ansible
-  ansible.builtin.shell:
-    cmd: "{{ item }}"
-    chdir: /usr/local
+- name: Build the FreeSWITCH fs_cli
+  community.general.make:
+    chdir: /usr/src/freeswitch/libs/esl
+  when: fs_cli_exists.rc != 0
+
+- name: Addgroup freeswitch
+  ansible.builtin.group:
+    name: freeswitch
+    state: present
+
+- name: Add user freeswitch in group freeswitch
+  ansible.builtin.user:
+    name: freeswitch
+    group: freeswitch
+    home: /usr/local/freeswitch
+    system: true
+    comment: FreeSWITCH open source softswitch
+    password: '!'
+
+- name: Set permissions in directories
+  ansible.builtin.file:
+    path: "{{item.dir}}"
+    state: directory
+    recurse: true
+    owner: freeswitch
+    group: freeswitch
+    mode: "{{item.args}}"
   with_items: 
-    - groupadd freeswitch
-    - adduser --quiet --system --home /usr/local/freeswitch --gecos "FreeSWITCH open source softswitch" --ingroup freeswitch freeswitch --disabled-password
-    - chown -R freeswitch:freeswitch /usr/local/freeswitch/ 
-    - chmod -R ug=rwX,o= /usr/local/freeswitch/
-    - chmod -R u=rwx,g=rx /usr/local/freeswitch/bin/*
-  ignore_errors: true
+    - {args: ug=rwX,o=, dir: /usr/local/freeswitch/ }
+    - {args: ug=rwX,o=, dir: /usr/local/freeswitch/ }
+    - {args: u=rwx,g=rx, dir: /usr/local/freeswitch/bin/ }
 
 - name: Create a symbolic link of fs_cli
   ansible.builtin.file:
@@ -92,9 +114,19 @@
     group: root
     mode: '0644'
 
+- name: Copy xml config file of sip profiles
+  ansible.builtin.template:
+    src: "{{item.src}}"
+    dest: "{{item.dest}}"
+    owner: freeswitch
+    group: freeswitch
+  with_items: 
+    - {src: ../templates/internal.xml.j2, dest: /usr/local/freeswitch/conf/sip_profiles/internal.xml }
+    - {src: ../templates/external.xml.j2, dest: /usr/local/freeswitch/conf/sip_profiles/external.xml }
+    - {src: ../templates/vpn.xml.j2, dest: /usr/local/freeswitch/conf/sip_profiles/vpn.xml }
+
 - name: Enable service FreeSWITCH and state started
   ansible.builtin.service:
     name: freeswitch
     state: started
     enabled: true
-
