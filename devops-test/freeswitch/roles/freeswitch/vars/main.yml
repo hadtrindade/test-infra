@@ -7,3 +7,7 @@ signalwire_keypair: /usr/share/keyrings/signalwire-freeswitch-repo.gpg
 signalwire_token: pat_aSUPRIMIDO # Vou ver uma forma segura.
 signalwire_user: signalwire
 freeswitch_repo: https://github.com/signalwire/freeswitch.git
+
+sip_profile_external_port: 5080
+sip_profile_internal_port: 5060
+sip_profile_vpn_port: 5090
